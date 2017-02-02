@@ -26,9 +26,7 @@ class RectLayer extends AnimatableLayer {
     @Nullable private RoundRectLayer strokeLayer;
 
     RectLayer(RectangleShape rectShape, @Nullable ShapeFill fill,
-            @Nullable ShapeStroke stroke, Transform transform, Drawable.Callback callback) {
-        super(callback);
-
+            @Nullable ShapeStroke stroke, Transform transform) {
         setBounds(transform.getBounds());
         setAnchorPoint(transform.getAnchor().createAnimation());
         setAlpha(transform.getOpacity().createAnimation());
@@ -37,7 +35,7 @@ class RectLayer extends AnimatableLayer {
         setRotation(transform.getRotation().createAnimation());
 
         if (fill != null) {
-            fillLayer = new RoundRectLayer(getCallback());
+            fillLayer = new RoundRectLayer();
             fillLayer.setColor(fill.getColor().createAnimation());
             fillLayer.setShapeAlpha(fill.getOpacity().createAnimation());
             fillLayer.setTransformAlpha(transform.getOpacity().createAnimation());
@@ -48,7 +46,7 @@ class RectLayer extends AnimatableLayer {
         }
 
         if (stroke != null) {
-            strokeLayer = new RoundRectLayer(getCallback());
+            strokeLayer = new RoundRectLayer();
             strokeLayer.setIsStroke();
             strokeLayer.setColor(stroke.getColor().createAnimation());
             strokeLayer.setShapeAlpha(stroke.getOpacity().createAnimation());
@@ -85,7 +83,7 @@ class RectLayer extends AnimatableLayer {
         private final KeyframeAnimation.AnimationListener<Integer> alphaChangedListener = new KeyframeAnimation.AnimationListener<Integer>() {
             @Override
             public void onValueChanged(Integer value) {
-                invalidateSelf();
+                repaint();
             }
         };
 
@@ -113,21 +111,21 @@ class RectLayer extends AnimatableLayer {
         private final KeyframeAnimation.AnimationListener<Float> cornerRadiusChangedListener = new KeyframeAnimation.AnimationListener<Float>() {
             @Override
             public void onValueChanged(Float value) {
-                invalidateSelf();
+                repaint();
             }
         };
 
         private final KeyframeAnimation.AnimationListener<PointF> rectPositionChangedListener = new KeyframeAnimation.AnimationListener<PointF>() {
             @Override
             public void onValueChanged(PointF value) {
-                invalidateSelf();
+                repaint();
             }
         };
 
         private final KeyframeAnimation.AnimationListener<PointF> rectSizeChangedListener = new KeyframeAnimation.AnimationListener<PointF>() {
             @Override
             public void onValueChanged(PointF value) {
-                invalidateSelf();
+                repaint();
             }
         };
 
@@ -145,12 +143,6 @@ class RectLayer extends AnimatableLayer {
         @Nullable private List<KeyframeAnimation<Float>> lineDashPattern;
         @Nullable private KeyframeAnimation<Float> lineDashPatternOffset;
 
-        RoundRectLayer(Drawable.Callback callback) {
-            super(callback);
-            paint.setAntiAlias(true);
-            paint.setStyle(Paint.Style.FILL);
-        }
-
         void setShapeAlpha(KeyframeAnimation<Integer> shapeAlpha) {
             if (this.shapeAlpha != null) {
                 removeAnimation(this.shapeAlpha);
@@ -159,7 +151,7 @@ class RectLayer extends AnimatableLayer {
             this.shapeAlpha = shapeAlpha;
             addAnimation(shapeAlpha);
             shapeAlpha.addUpdateListener(alphaChangedListener);
-            invalidateSelf();
+            repaint();
         }
 
         void setTransformAlpha(KeyframeAnimation<Integer> transformAlpha) {
@@ -170,7 +162,7 @@ class RectLayer extends AnimatableLayer {
             this.transformAlpha = transformAlpha;
             addAnimation(transformAlpha);
             transformAlpha.addUpdateListener(alphaChangedListener);
-            invalidateSelf();
+            repaint();
         }
 
 
@@ -200,12 +192,12 @@ class RectLayer extends AnimatableLayer {
 
         private void onColorChanged() {
             paint.setColor(color.getValue());
-            invalidateSelf();
+            repaint();
         }
 
         private void setIsStroke() {
             paint.setStyle(Paint.Style.STROKE);
-            invalidateSelf();
+            repaint();
         }
 
         void setLineWidth(KeyframeAnimation<Float> lineWidth) {
@@ -221,7 +213,7 @@ class RectLayer extends AnimatableLayer {
 
         private void onLineWidthChanged() {
             paint.setStrokeWidth(lineWidth.getValue());
-            invalidateSelf();
+            repaint();
         }
 
         void setDashPattern(List<KeyframeAnimation<Float>> lineDashPattern, KeyframeAnimation<Float> offset) {
@@ -260,7 +252,7 @@ class RectLayer extends AnimatableLayer {
                 values[i] = lineDashPattern.get(i).getValue();
             }
             paint.setPathEffect(new DashPathEffect(values, lineDashPatternOffset.getValue()));
-            invalidateSelf();
+            repaint();
         }
 
         void setLineCapType(ShapeStroke.LineCapType lineCapType) {
@@ -296,7 +288,7 @@ class RectLayer extends AnimatableLayer {
             this.rectCornerRadius = rectCornerRadius;
             addAnimation(rectCornerRadius);
             rectCornerRadius.addUpdateListener(cornerRadiusChangedListener);
-            invalidateSelf();
+            repaint();
         }
 
         void setRectPosition(KeyframeAnimation<PointF> rectPosition) {
@@ -307,7 +299,7 @@ class RectLayer extends AnimatableLayer {
             this.rectPosition = rectPosition;
             addAnimation(rectPosition);
             rectPosition.addUpdateListener(rectPositionChangedListener);
-            invalidateSelf();
+            repaint();
         }
 
         void setRectSize(KeyframeAnimation<PointF> rectSize) {
@@ -318,7 +310,7 @@ class RectLayer extends AnimatableLayer {
             this.rectSize = rectSize;
             addAnimation(rectSize);
             rectSize.addUpdateListener(rectSizeChangedListener);
-            invalidateSelf();
+            repaint();
         }
 
         @SuppressLint("NewApi")

@@ -1,9 +1,7 @@
 package com.airbnb.lottie.layers;
 
-import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
-import android.graphics.drawable.Drawable;
 
 import com.airbnb.lottie.animatable.AnimatableFloatValue;
 import com.airbnb.lottie.animation.KeyframeAnimation;
@@ -20,9 +18,7 @@ import java.util.List;
 class EllipseShapeLayer extends AnimatableLayer {
 
     EllipseShapeLayer(CircleShape circleShape, ShapeFill fill, ShapeStroke stroke,
-            ShapeTrimPath trim, Transform transform, Drawable.Callback callback) {
-        super(callback);
-
+            ShapeTrimPath trim, Transform transform) {
         setBounds(transform.getBounds());
         setAnchorPoint(transform.getAnchor().createAnimation());
         setAlpha(transform.getOpacity().createAnimation());
@@ -31,7 +27,7 @@ class EllipseShapeLayer extends AnimatableLayer {
         setRotation(transform.getRotation().createAnimation());
 
         if (fill != null) {
-            CircleShapeLayer fillLayer = new CircleShapeLayer(getCallback());
+            CircleShapeLayer fillLayer = new CircleShapeLayer();
             fillLayer.setColor(fill.getColor().createAnimation());
             fillLayer.setAlpha(fill.getOpacity().createAnimation());
             fillLayer.updateCircle(
@@ -41,7 +37,7 @@ class EllipseShapeLayer extends AnimatableLayer {
         }
 
         if (stroke != null) {
-            CircleShapeLayer strokeLayer = new CircleShapeLayer(getCallback());
+            CircleShapeLayer strokeLayer = new CircleShapeLayer();
             strokeLayer.setIsStroke();
             strokeLayer.setColor(stroke.getColor().createAnimation());
             strokeLayer.setAlpha(stroke.getOpacity().createAnimation());
@@ -78,7 +74,7 @@ class EllipseShapeLayer extends AnimatableLayer {
         private final KeyframeAnimation.AnimationListener<PointF> circlePositionChangedListener = new KeyframeAnimation.AnimationListener<PointF>() {
             @Override
             public void onValueChanged(PointF progress) {
-                invalidateSelf();
+                repaint();
             }
         };
 
@@ -133,7 +129,7 @@ class EllipseShapeLayer extends AnimatableLayer {
 
             onPathChanged();
 
-            invalidateSelf();
+            repaint();
         }
     }
 }

@@ -1,34 +1,6 @@
-apply plugin: 'com.android.library'
-apply from: 'gradle-maven-push.gradle'
+apply plugin: 'java'
 
-android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
-    resourcePrefix 'lottie_'
-
-    defaultConfig {
-        minSdkVersion 16
-        targetSdkVersion 25
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
-    }
-    lintOptions {
-        abortOnError true
-    }
-}
-
-dependencies {
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    compile 'com.android.support:appcompat-v7:25.1.1'
-    testCompile 'junit:junit:4.12'
-    testCompile "org.robolectric:robolectric:3.1.2"
-}
-
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    failOnError false
+dependencies{
+    compile 'com.google.code.findbugs:jsr305:3.0.1'
+    compile 'org.json:json:20160810'
 }

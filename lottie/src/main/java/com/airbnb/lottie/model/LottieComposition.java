@@ -1,9 +1,6 @@
 package com.airbnb.lottie.model;
 
-import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Rect;
-import android.os.AsyncTask;
 import android.support.annotation.RestrictTo;
 import android.support.annotation.VisibleForTesting;
 import android.util.LongSparseArray;
@@ -12,6 +9,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.swing.*;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -43,14 +42,14 @@ public class LottieComposition {
     /**
      * Loads a composition from a file stored in /assets.
      */
-    public static Cancellable fromAssetFileName(Context context, String fileName, OnCompositionLoadedListener loadedListener) {
+    public static Cancellable fromAssetFileName(String fileName, OnCompositionLoadedListener loadedListener) {
         InputStream stream;
         try {
-            stream = context.getAssets().open(fileName);
+            stream = new FileInputStream(fileName);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to find file " + fileName, e);
         }
-        return fromInputStream(context, stream, loadedListener);
+        return fromInputStream(stream, loadedListener);
     }
 
     /**
@@ -58,33 +57,29 @@ public class LottieComposition {
      *
      * ex: fromInputStream(context, new FileInputStream(filePath), (composition) -> {});
      */
-    public static Cancellable fromInputStream(Context context, InputStream stream, OnCompositionLoadedListener loadedListener) {
-        FileCompositionLoader loader = new FileCompositionLoader(context.getResources(), loadedListener);
-        loader.execute(stream);
-        return loader;
+    public static Cancellable fromInputStream(InputStream stream, OnCompositionLoadedListener loadedListener) {
+        return new FileCompositionLoader(loadedListener, stream);
     }
 
-    public static LottieComposition fromFileSync(Context context, String fileName) {
+    public static LottieComposition fromFileSync(String fileName) {
         InputStream file;
         try {
-            file = context.getAssets().open(fileName);
+            file = new FileInputStream(fileName);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to find file " + fileName, e);
         }
-        return fromInputStream(context.getResources(), file);
+        return fromInputStream(file);
     }
 
     /**
      * Loads a composition from a raw json object. This is useful for animations loaded from the network.
      */
-    public static Cancellable fromJson(Resources res, JSONObject json, OnCompositionLoadedListener loadedListener) {
-        JsonCompositionLoader loader = new JsonCompositionLoader(res, loadedListener);
-        loader.execute(json);
-        return loader;
+    public static Cancellable fromJson(JSONObject json, OnCompositionLoadedListener loadedListener) {
+        return new JsonCompositionLoader( loadedListener, json);
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static LottieComposition fromInputStream(Resources res, InputStream file) {
+    public static LottieComposition fromInputStream(InputStream file) {
         try {
             int size = file.available();
             byte[] buffer = new byte[size];
@@ -94,7 +89,7 @@ public class LottieComposition {
             String json = new String(buffer, "UTF-8");
 
             JSONObject jsonObject = new JSONObject(json);
-            return LottieComposition.fromJsonSync(res,jsonObject);
+            return LottieComposition.fromJsonSync(jsonObject);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to find file.", e);
         } catch (JSONException e) {
@@ -103,8 +98,8 @@ public class LottieComposition {
     }
 
     @SuppressWarnings("WeakerAccess")
-    public static LottieComposition fromJsonSync(Resources res, JSONObject json) {
-        LottieComposition composition = new LottieComposition(res);
+    public static LottieComposition fromJsonSync(JSONObject json) {
+        LottieComposition composition = new LottieComposition();
 
         int width = -1;
         int height = -1;
@@ -191,8 +186,8 @@ public class LottieComposition {
     private boolean hasMattes;
     private float scale;
 
-    private LottieComposition(Resources res) {
-        scale = res.getDisplayMetrics().density;
+    private LottieComposition() {
+        scale = 1f; // TODO dpi
     }
 
     @VisibleForTesting
@@ -253,49 +248,61 @@ public class LottieComposition {
 
     private static final class FileCompositionLoader extends CompositionLoader<InputStream> {
 
-        private final Resources res;
         private final OnCompositionLoadedListener loadedListener;
 
-        FileCompositionLoader(Resources res, OnCompositionLoadedListener loadedListener) {
-            this.res = res;
+        FileCompositionLoader(OnCompositionLoadedListener loadedListener, InputStream...params) {
+            super(params);
             this.loadedListener = loadedListener;
         }
 
         @Override
-        protected LottieComposition doInBackground(InputStream... params) {
-            return fromInputStream(res, params[0]);
+        protected LottieComposition doInBackground() throws Exception {
+            return fromInputStream(params[0]);
         }
 
         @Override
-        protected void onPostExecute(LottieComposition composition) {
-            loadedListener.onCompositionLoaded(composition);
+        protected void done() {
+            try {
+                loadedListener.onCompositionLoaded(get());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private static final class JsonCompositionLoader extends CompositionLoader<JSONObject> {
 
-        private final Resources res;
         private final OnCompositionLoadedListener loadedListener;
 
-        JsonCompositionLoader(Resources res, OnCompositionLoadedListener loadedListener) {
-            this.res = res;
+        JsonCompositionLoader(OnCompositionLoadedListener loadedListener, JSONObject...params) {
+            super(params);
             this.loadedListener = loadedListener;
         }
 
         @Override
-        protected LottieComposition doInBackground(JSONObject... params) {
-            return fromJsonSync(res, params[0]);
+        protected LottieComposition doInBackground() throws Exception {
+            return fromJsonSync(params[0]);
         }
 
         @Override
-        protected void onPostExecute(LottieComposition composition) {
-            loadedListener.onCompositionLoaded(composition);
+        protected void done() {
+            try {
+                loadedListener.onCompositionLoaded(get());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private abstract static class CompositionLoader<Params>
-            extends AsyncTask<Params, Void, LottieComposition>
+            extends SwingWorker<LottieComposition, Void>
             implements Cancellable {
+        Params[] params;
+
+        @SafeVarargs
+        CompositionLoader(Params... params) {
+            this.params = params;
+        }
 
         @Override
         public void cancel() {

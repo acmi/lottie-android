@@ -1,78 +1,66 @@
 package com.airbnb.lottie.layers;
 
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.ColorFilter;
-import android.graphics.Paint;
-import android.graphics.PixelFormat;
 import android.graphics.PointF;
-import android.graphics.drawable.Drawable;
-import android.support.annotation.ColorInt;
 import android.support.annotation.FloatRange;
-import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RestrictTo;
-
 import com.airbnb.lottie.animation.KeyframeAnimation;
 import com.airbnb.lottie.utils.ScaleXY;
 
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 @RestrictTo(RestrictTo.Scope.LIBRARY_GROUP)
-public class AnimatableLayer extends Drawable {
+public class AnimatableLayer extends JComponent {
 
     private final KeyframeAnimation.AnimationListener<Integer> integerChangedListener = new KeyframeAnimation.AnimationListener<Integer>() {
         @Override
         public void onValueChanged(Integer progress) {
-            invalidateSelf();
+            repaint();
         }
     };
     private final KeyframeAnimation.AnimationListener<Float> floatChangedListener = new KeyframeAnimation.AnimationListener<Float>() {
         @Override
         public void onValueChanged(Float progress) {
-            invalidateSelf();
+            repaint();
         }
     };
     private final KeyframeAnimation.AnimationListener<ScaleXY> scaleChangedListener = new KeyframeAnimation.AnimationListener<ScaleXY>() {
         @Override
         public void onValueChanged(ScaleXY progress) {
-            invalidateSelf();
+            repaint();
         }
     };
     private final KeyframeAnimation.AnimationListener<PointF> pointChangedListener = new KeyframeAnimation.AnimationListener<PointF>() {
         @Override
         public void onValueChanged(PointF progress) {
-            invalidateSelf();
+            repaint();
         }
     };
 
     final List<AnimatableLayer> layers = new ArrayList<>();
-    @Nullable private AnimatableLayer parentLayer;
+    @Nullable
+    private AnimatableLayer parentLayer;
 
     private KeyframeAnimation<PointF> position;
     private KeyframeAnimation<PointF> anchorPoint;
-    /** This should mimic CALayer#transform */
+    /**
+     * This should mimic CALayer#transform
+     */
     private KeyframeAnimation<ScaleXY> transform;
     private KeyframeAnimation<Integer> alpha = null;
     private KeyframeAnimation<Float> rotation;
 
-    private final Paint solidBackgroundPaint = new Paint();
-    @ColorInt private int backgroundColor;
+    private Color backgroundColor = new Color(0);
     private final List<KeyframeAnimation<?>> animations = new ArrayList<>();
-    @FloatRange(from = 0f, to = 1f) private float progress;
+    @FloatRange(from = 0f, to = 1f)
+    private float progress;
 
-    AnimatableLayer(Drawable.Callback callback) {
-        setCallback(callback);
-
-        solidBackgroundPaint.setAlpha(0);
-        solidBackgroundPaint.setStyle(Paint.Style.FILL);
-    }
-
-    void setBackgroundColor(@ColorInt int color) {
+    void setBackgroundColor(Color color) {
         this.backgroundColor = color;
-        solidBackgroundPaint.setColor(color);
-        invalidateSelf();
+        repaint();
     }
 
     void addAnimation(KeyframeAnimation<?> newAnimation) {
@@ -84,42 +72,44 @@ public class AnimatableLayer extends Drawable {
     }
 
     @Override
-    public void draw(@NonNull Canvas canvas) {
+    protected void paintComponent(Graphics g) {
+        Graphics2D canvas = (Graphics2D) g;
         int saveCount = canvas.save();
         applyTransformForLayer(canvas, this);
 
-        int backgroundAlpha = Color.alpha(backgroundColor);
+        int backgroundAlpha = backgroundColor.getAlpha();
         if (backgroundAlpha != 0) {
             int alpha = backgroundAlpha;
             if (this.alpha != null) {
                 alpha = alpha * this.alpha.getValue() / 255;
             }
-            solidBackgroundPaint.setAlpha(alpha);
             if (alpha > 0) {
-                canvas.drawRect(getBounds(), solidBackgroundPaint);
+                canvas.setPaint(backgroundColor);
+                Rectangle bounds = getBounds();
+                canvas.drawRect(bounds.x, bounds.y, bounds.width, bounds.height);
             }
         }
         for (int i = 0; i < layers.size(); i++) {
-            layers.get(i).draw(canvas);
+            layers.get(i).paintComponent(canvas);
         }
         canvas.restoreToCount(saveCount);
     }
 
-    int saveCanvas(@Nullable Canvas canvas) {
+    int saveCanvas(@Nullable Graphics2D canvas) {
         if (canvas == null) {
             return 0;
         }
         return canvas.save();
     }
 
-    void restoreCanvas(@Nullable Canvas canvas, int count) {
+    void restoreCanvas(@Nullable Graphics2D canvas, int count) {
         if (canvas == null) {
             return;
         }
         canvas.restoreToCount(count);
     }
 
-    void applyTransformForLayer(@Nullable Canvas canvas, AnimatableLayer layer) {
+    void applyTransformForLayer(@Nullable Graphics2D canvas, AnimatableLayer layer) {
         if (canvas == null) {
             return;
         }
@@ -154,7 +144,6 @@ public class AnimatableLayer extends Drawable {
     }
 
 
-    @Override
     public void setAlpha(int alpha) {
         throw new IllegalArgumentException("This shouldn't be used.");
     }
@@ -168,19 +157,13 @@ public class AnimatableLayer extends Drawable {
         addAnimation(alpha);
         alpha.addUpdateListener(integerChangedListener);
 
-        invalidateSelf();
+        repaint();
     }
 
-    @Override
     public int getAlpha() {
         float alpha = this.alpha == null ? 1f : (this.alpha.getValue() / 255f);
         float parentAlpha = parentLayer == null ? 1f : (parentLayer.getAlpha() / 255f);
         return (int) (alpha * parentAlpha * 255);
-    }
-
-    @Override
-    public void setColorFilter(ColorFilter colorFilter) {
-
     }
 
     void setAnchorPoint(KeyframeAnimation<PointF> anchorPoint) {
@@ -223,11 +206,6 @@ public class AnimatableLayer extends Drawable {
         rotation.addUpdateListener(floatChangedListener);
     }
 
-    @Override
-    public int getOpacity() {
-        return PixelFormat.TRANSLUCENT;
-    }
-
     void addLayer(AnimatableLayer layer) {
         layer.parentLayer = this;
         layers.add(layer);
@@ -235,12 +213,12 @@ public class AnimatableLayer extends Drawable {
         if (this.alpha != null) {
             layer.setAlpha(this.alpha);
         }
-        invalidateSelf();
+        repaint();
     }
 
     void clearLayers() {
         layers.clear();
-        invalidateSelf();
+        repaint();
     }
 
     public void setProgress(@FloatRange(from = 0f, to = 1f) float progress) {

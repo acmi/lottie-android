@@ -32,7 +32,7 @@ class ShapeLayer extends AnimatableLayer {
     private final KeyframeAnimation.AnimationListener<Integer> alphaChangedListener = new KeyframeAnimation.AnimationListener<Integer>() {
         @Override
         public void onValueChanged(Integer value) {
-            invalidateSelf();
+            repaint();
         }
     };
 

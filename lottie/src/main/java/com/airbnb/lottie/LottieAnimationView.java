@@ -21,6 +21,7 @@ import android.util.Log;
 import com.airbnb.lottie.layers.LottieDrawable;
 import com.airbnb.lottie.model.LottieComposition;
 
+import javafx.concurrent.Task;
 import org.json.JSONObject;
 
 import java.lang.ref.WeakReference;
@@ -203,7 +204,7 @@ public class LottieAnimationView extends AppCompatImageView {
 
         this.animationName = animationName;
         cancelLoaderTask();
-        compositionLoader = LottieComposition.fromAssetFileName(getContext(), animationName, new LottieComposition.OnCompositionLoadedListener() {
+        compositionLoader = LottieComposition.fromAssetFileName(animationName, new LottieComposition.OnCompositionLoadedListener() {
             @Override
             public void onCompositionLoaded(LottieComposition composition) {
                 if (cacheStrategy == CacheStrategy.Strong) {

@@ -22,8 +22,7 @@ class ShapeLayerView extends AnimatableLayer {
 
     ShapeLayerView(ShapePath shape, @Nullable ShapeFill fill,
             @Nullable ShapeStroke stroke, @Nullable ShapeTrimPath trim,
-            Transform transformModel, Drawable.Callback callback) {
-        super(callback);
+            Transform transformModel) {
         setBounds(transformModel.getBounds());
         setAnchorPoint(transformModel.getAnchor().createAnimation());
         setPosition(transformModel.getPosition().createAnimation());
@@ -32,7 +31,7 @@ class ShapeLayerView extends AnimatableLayer {
         AnimatableScaleValue scale = transformModel.getScale();
         setTransform(transformModel.getScale().createAnimation());
         if (fill != null) {
-            fillLayer = new ShapeLayer(getCallback());
+            fillLayer = new ShapeLayer();
             fillLayer.setPath(shape.getShapePath().createAnimation());
             fillLayer.setColor(fill.getColor().createAnimation());
             fillLayer.setShapeAlpha(fill.getOpacity().createAnimation());
@@ -42,7 +41,7 @@ class ShapeLayerView extends AnimatableLayer {
         }
 
         if (stroke != null) {
-            strokeLayer = new ShapeLayer(getCallback());
+            strokeLayer = new ShapeLayer();
             strokeLayer.setIsStroke();
             strokeLayer.setPath(shape.getShapePath().createAnimation());
             strokeLayer.setColor(stroke.getColor().createAnimation());

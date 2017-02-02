@@ -1,10 +1,7 @@
 package com.airbnb.lottie;
 
 import android.animation.ValueAnimator;
-import android.content.Context;
 import android.graphics.PointF;
-import android.view.View;
-import android.view.ViewTreeObserver;
 import android.view.animation.LinearInterpolator;
 
 import com.airbnb.lottie.animation.KeyframeAnimation;
@@ -33,8 +30,8 @@ import java.util.Map;
  */
 public class LottieViewAnimator {
 
-    public static LottieViewAnimator of(Context context, String fileName, View... views) {
-        return new LottieViewAnimator(context, fileName, views);
+    public static LottieViewAnimator of(String fileName, View... views) {
+        return new LottieViewAnimator(fileName, views);
     }
 
     @SuppressWarnings("FieldCanBeLocal")
@@ -53,7 +50,7 @@ public class LottieViewAnimator {
     private LottieComposition composition;
     private boolean startWhenReady = false;
 
-    private LottieViewAnimator(Context context, String fileName, View... views) {
+    private LottieViewAnimator(String fileName, View... views) {
         viewsMap = new HashMap<>(views.length);
 
         for (View view : views) {

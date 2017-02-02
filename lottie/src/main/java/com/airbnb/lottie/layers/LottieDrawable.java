@@ -2,8 +2,6 @@ package com.airbnb.lottie.layers;
 
 import android.animation.Animator;
 import android.animation.ValueAnimator;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -14,6 +12,7 @@ import android.view.animation.LinearInterpolator;
 
 import com.airbnb.lottie.model.Layer;
 import com.airbnb.lottie.model.LottieComposition;
+import javafx.scene.image.Image;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,11 +31,11 @@ public class LottieDrawable extends AnimatableLayer {
 
     private final ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
 
-    @Nullable private Bitmap mainBitmap = null;
-    @Nullable private Bitmap maskBitmap = null;
-    @Nullable private Bitmap matteBitmap = null;
-    @Nullable private Bitmap mainBitmapForMatte = null;
-    @Nullable private Bitmap maskBitmapForMatte = null;
+    @Nullable private Image mainBitmap = null;
+    @Nullable private Image maskBitmap = null;
+    @Nullable private Image matteBitmap = null;
+    @Nullable private Image mainBitmapForMatte = null;
+    @Nullable private Image maskBitmapForMatte = null;
     private boolean playAnimationWhenLayerAdded;
 
     public LottieDrawable() {
@@ -77,7 +76,7 @@ public class LottieDrawable extends AnimatableLayer {
         }
         Rect bounds = composition.getBounds();
         if (composition.hasMasks() || composition.hasMattes()) {
-            mainBitmap = Bitmap.createBitmap(bounds.width(), bounds.height(), Bitmap.Config.ARGB_8888);
+            mainBitmap = new Image() Bitmap.createBitmap(bounds.width(), bounds.height(), Bitmap.Config.ARGB_8888);
         }
         if (composition.hasMasks()) {
             maskBitmap = Bitmap.createBitmap(bounds.width(), bounds.height(), Bitmap.Config.ALPHA_8);
